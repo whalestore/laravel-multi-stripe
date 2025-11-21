@@ -8,21 +8,71 @@
 
 ### 快速开始（核心用法）
 
-1. **安装 & 发布配置**
+> 当前包尚未发布到 Packagist，**不能直接 `composer require whalestore/laravel-multi-stripe`**。  
+> 请在你的 Laravel 项目中通过「本地 path 仓库」或「Git VCS 仓库」方式引入，见下面的说明。
 
-```bash
-composer require whalestore/laravel-multi-stripe
+1. **在你的 Laravel 项目中配置 Composer 仓库（推荐本地 path 方式）**
+
+假设你的目录结构如下：
+
+- `~/Codes/xuefei/laravel-multi-stripe`（本包）
+- `~/Codes/xuefei/your-laravel-app`（你的 Laravel 项目）
+
+在 `your-laravel-app/composer.json` 中增加：
+
+```json
+"repositories": [
+  {
+    "type": "path",
+    "url": "../laravel-multi-stripe",
+    "options": {
+      "symlink": true
+    }
+  }
+],
+"require": {
+  "whalestore/laravel-multi-stripe": "*"
+}
 ```
 
-发布配置文件：
+然后在你的 Laravel 项目根目录执行：
+
+```bash
+cd ~/Codes/xuefei/your-laravel-app
+composer update whalestore/laravel-multi-stripe
+```
+
+这样 Composer 会直接从本地路径加载当前开发版的包（通过 symlink，改动会立刻生效）。
+
+> 如果你更想从 GitHub 仓库拉取，而不是本地路径，也可以这样配置：
+>
+> ```json
+> "repositories": [
+>   {
+>     "type": "vcs",
+>     "url": "git@github.com:whalestore/laravel-multi-stripe.git"
+>   }
+> ],
+> "require": {
+>   "whalestore/laravel-multi-stripe": "dev-main"
+> }
+> ```
+>
+> 然后执行：
+>
+> ```bash
+> composer require whalestore/laravel-multi-stripe:"dev-main"
+> ```
+
+2. **在你的 Laravel 项目中发布配置**
 
 ```bash
 php artisan vendor:publish --provider="Whalestore\LaravelMultiStripe\Providers\MultiStripeServiceProvider" --tag=config
 ```
 
-2. **在 `config/multi-stripe.php` 中配置多个账户 + test/live 环境**（见下文示例）。
+3. **在 `config/multi-stripe.php` 中配置多个账户 + test/live 环境**（见下文示例）。
 
-3. **在 Billable 模型中启用 `MultiBillable`，并增加账户字段**：
+4. **在 Billable 模型中启用 `MultiBillable`，并增加账户字段**：
 
 ```php
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -36,7 +86,7 @@ class User extends Authenticatable
 }
 ```
 
-4. **正常使用 Cashier API，自动走多账户配置**：
+5. **正常使用 Cashier API，自动走多账户配置**：
 
 ```php
 // 根据用户字段 / 路由 / 参数解析出账户+环境后，自动切换对应 Stripe key
