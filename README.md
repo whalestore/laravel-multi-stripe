@@ -231,6 +231,28 @@ POST /stripe/{account}/webhook
 
 ---
 
+### 使用命令行为指定账户创建 Webhook（multi-stripe:webhook:sync）
+
+为了简化多账户 webhook 的创建，本包提供了一个简单的 Artisan 命令：
+
+```bash
+php artisan multi-stripe:webhook:sync {account} {--env=test}
+```
+
+- **account**：必填，逻辑账户 ID（如 `us` / `eu`），需要已经在 `config/multi-stripe.php` 中配置。  
+- **--env**：可选，`test` 或 `live`，不传时使用 `multi-stripe.default_environment`。
+
+命令执行后会：
+
+1. 读取对应账户+环境下的 Stripe secret；  
+2. 根据 `multi-stripe.webhook.path` 和当前 app URL 生成 webhook URL（例如 `https://your-app.com/stripe/us/webhook`）；  
+3. 使用 Stripe PHP SDK 在该账户下创建 webhook endpoint；  
+4. 在命令行中输出创建成功的 endpoint ID 和（首次创建时）signing secret。  
+
+你需要将返回的 signing secret 填入 `config/multi-stripe.php` 对应账户/环境的 `webhook_secret`（或其对应的 `.env` 环境变量），之后该账户的 webhook 即可由本包 + Cashier 正常处理。
+
+---
+
 ### 中间件：请求级 Stripe 上下文
 
 中间件 `multi-stripe.context` 会在一次请求周期中解析出当前 Stripe 账户+环境，并将对应的 `StripeAccountConfig` 与 `StripeContext` 绑定到容器中：

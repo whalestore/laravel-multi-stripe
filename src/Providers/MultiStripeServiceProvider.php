@@ -12,6 +12,7 @@ use Whalestore\LaravelMultiStripe\Managers\StripeAccountManager;
 use Whalestore\LaravelMultiStripe\Resolvers\ConfigStripeAccountResolver;
 use Whalestore\LaravelMultiStripe\Services\MultiStripeClientFactory;
 use Whalestore\LaravelMultiStripe\Http\Middleware\SetCurrentStripeContext;
+use Whalestore\LaravelMultiStripe\Console\Commands\MultiStripeWebhookSyncCommand;
 
 class MultiStripeServiceProvider extends ServiceProvider
 {
@@ -63,6 +64,7 @@ class MultiStripeServiceProvider extends ServiceProvider
 
         $this->registerMiddleware();
         $this->registerRoutes();
+        $this->registerCommands();
     }
 
     /**
@@ -78,6 +80,20 @@ class MultiStripeServiceProvider extends ServiceProvider
         $router = $this->app['router'];
 
         $router->aliasMiddleware('multi-stripe.context', SetCurrentStripeContext::class);
+    }
+
+    /**
+     * Register package console commands.
+     */
+    protected function registerCommands(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->commands([
+            MultiStripeWebhookSyncCommand::class,
+        ]);
     }
 
     /**
