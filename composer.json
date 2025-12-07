@@ -14,23 +14,21 @@
   },
   "autoload": {
     "psr-4": {
-      "Whalestore\\\\LaravelMultiStripe\\\\": "src/"
+      "Whalestore\\LaravelMultiStripe\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Whalestore\\\\LaravelMultiStripe\\\\Tests\\\\": "tests/"
+      "Whalestore\\LaravelMultiStripe\\Tests\\": "tests/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Whalestore\\\\LaravelMultiStripe\\\\Providers\\\\MultiStripeServiceProvider"
+        "Whalestore\\LaravelMultiStripe\\Providers\\MultiStripeServiceProvider"
       ]
     }
   },
   "minimum-stability": "stable",
   "prefer-stable": true
 }
-
-
