@@ -48,7 +48,7 @@ class MultiStripeWebhookController extends Controller
 
         // Cashier 的 WebhookController 期望从 Request 中解析事件，这里简单复用当前 Request。
         // 如需更精细的控制，可以考虑扩展 Cashier 的控制器。
-        return $cashierController($request);
+        return $cashierController->handleWebhook($request);
     }
 }
 
