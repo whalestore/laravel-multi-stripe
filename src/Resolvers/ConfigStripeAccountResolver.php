@@ -23,6 +23,12 @@ class ConfigStripeAccountResolver implements StripeAccountResolver
 
     public function resolve(?Model $billable = null): ?array
     {
+        // 0. 优先从域名/区域解析（最高优先级）
+        $fromDomain = $this->resolveFromDomain();
+        if ($fromDomain !== null) {
+            return $fromDomain;
+        }
+
         // 1. 优先从 billable（如用户模型）解析
         if ($billable !== null) {
             $fromBillable = $this->resolveFromBillable($billable);
@@ -57,6 +63,30 @@ class ConfigStripeAccountResolver implements StripeAccountResolver
 
         return null;
     }
+
+    /**
+     * 从域名/区域服务解析 Stripe 账户
+     */
+    protected function resolveFromDomain(): ?array
+    {
+        // 尝试从 RegionService 获取 stripe 账户
+        try {
+            $regionService = app(\App\Services\RegionService::class);
+            if ($regionService) {
+                $account = $regionService->getStripeAccount();
+                if ($account) {
+                    return [
+                        'account' => $account,
+                        'environment' => $this->manager->defaultEnvironment(),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            // RegionService 可能未注册，忽略错误继续其他解析方式
+        }
+        return null;
+    }
+
 
     protected function resolveFromBillable(Model $billable): ?array
     {

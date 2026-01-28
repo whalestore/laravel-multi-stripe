@@ -13,7 +13,10 @@ use Whalestore\LaravelMultiStripe\Support\StripeContext;
 
 trait MultiBillable
 {
-    use Billable;
+    use Billable {
+        newSubscription as cashierNewSubscription;
+        charge as cashierCharge;
+    }
 
     /**
      * 获取当前模型对应的 StripeClient（根据账户 + 环境）。
@@ -33,13 +36,13 @@ trait MultiBillable
      * 在调用父类的 newSubscription 之前，根据当前 billable 解析出账户+环境，
      * 并暂时覆盖 Cashier 的 secret 配置。
      */
-    public function newSubscription(string $subscription, string|string[] $prices): SubscriptionBuilder
+    public function newSubscription(string $subscription, string|array $prices): SubscriptionBuilder
     {
         [$config, $previousSecret] = $this->withStripeConfigForCurrentBillable();
 
         try {
             /** @var SubscriptionBuilder $builder */
-            $builder = parent::newSubscription($subscription, $prices);
+            $builder = $this->cashierNewSubscription($subscription, $prices);
 
             // 将 StripeAccountConfig 注入到 SubscriptionBuilder，便于调用方在需要时访问。
             $builder->stripeOptions = array_merge(
@@ -72,7 +75,7 @@ trait MultiBillable
         [, $previousSecret] = $this->withStripeConfigForCurrentBillable();
 
         try {
-            return parent::charge($amount, $paymentMethod, $options);
+            return $this->cashierCharge($amount, $paymentMethod, $options);
         } finally {
             if ($previousSecret !== null) {
                 config(['cashier.secret' => $previousSecret]);
