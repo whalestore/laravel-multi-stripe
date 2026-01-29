@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Laravel\Cashier\Http\Controllers\WebhookController;
 use Symfony\Component\HttpFoundation\Response;
 use Whalestore\LaravelMultiStripe\Managers\StripeAccountManager;
+use Illuminate\Support\Facades\Log;
 
 class MultiStripeWebhookController extends Controller
 {
@@ -30,7 +31,20 @@ class MultiStripeWebhookController extends Controller
             ? $envFromRoute
             : config('multi-stripe.default_environment', 'test');
 
+        Log::info('[PAY_FLOW] MultiStripeWebhook: Received webhook', [
+            'method' => $request->method(),
+            'uri' => $request->getRequestUri(),
+            'account_parameter' => $accountId,
+            'env_parameter' => $environment,
+            'signature' => $request->header('Stripe-Signature') ? 'present' : 'missing',
+        ]);
+
         $config = $this->manager->get($accountId, $environment);
+
+        Log::info('[PAY_FLOW] MultiStripeWebhook: Resolved config', [
+            'account' => $config->accountId(),
+            'environment' => $config->environment(),
+        ]);
 
         $webhookSecret = $config->webhookSecret();
 

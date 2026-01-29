@@ -39,6 +39,9 @@ class SetCurrentStripeContext
             // 将当前账户配置与上下文绑定到容器，后续可通过依赖注入获取
             $this->container->instance(StripeAccountConfig::class, $config);
             $this->container->instance(StripeContext::class, new StripeContext($config));
+
+            // 重要：同步更新 Cashier 所依赖的全局配置，确保即便直接调用 Cashier 内部逻辑也能使用正确私钥。
+            config(['cashier.secret' => $config->secret()]);
         }
 
         return $next($request);
@@ -46,8 +49,11 @@ class SetCurrentStripeContext
 
     protected function resolveBillableFromRequest(Request $request): ?Model
     {
-        // 预留钩子：用户可以在自定义解析器中直接根据请求解析，无需 billable。
-        // 这里默认返回 null，后续可通过扩展支持根据认证用户等自动推断。
+        // 如果请求已经被 TokenAuth 等中间件验证，则直接使用注入的 user 实体。
+        if (isset($request->user) && $request->user instanceof Model) {
+            return $request->user;
+        }
+
         return null;
     }
 }
