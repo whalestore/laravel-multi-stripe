@@ -41,6 +41,7 @@ class MultiStripeWebhookController extends Controller
         // 将当前账户/环境对应的 webhook secret 写入 Cashier 配置，
         // 让 Cashier 自己完成事件解析与签名验证。
         config(['cashier.webhook.secret' => $webhookSecret]);
+        config(['cashier.secret' => $config->secret()]);
 
         // 将事件交给 Cashier 原有的 WebhookController 处理
         /** @var WebhookController $cashierController */
