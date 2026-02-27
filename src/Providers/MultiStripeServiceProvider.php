@@ -108,7 +108,7 @@ class MultiStripeServiceProvider extends ServiceProvider
         /** @var array<string, mixed> $config */
         $config = $this->app['config']->get('multi-stripe.webhook', []);
 
-        $path = $config['path'] ?? 'stripe/{account}/webhook';
+        $path = $config['path'] ?? 'stripe/{account}/{environment?}/webhook';
         $middleware = $config['middleware'] ?? ['api'];
 
         /** @var Router $router */

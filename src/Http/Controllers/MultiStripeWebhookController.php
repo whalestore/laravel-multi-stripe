@@ -29,7 +29,7 @@ class MultiStripeWebhookController extends Controller
         $envFromRoute = $request->route($environmentPlaceholder);
         $environment = is_string($envFromRoute) && $envFromRoute !== ''
             ? $envFromRoute
-            : config('multi-stripe.default_environment', 'test');
+            : $this->resolveEnvironment($accountId, $request);
 
         Log::info('[PAY_FLOW] MultiStripeWebhook: Received webhook', [
             'method' => $request->method(),
@@ -64,6 +64,33 @@ class MultiStripeWebhookController extends Controller
         // Cashier 的 WebhookController 期望从 Request 中解析事件，这里简单复用当前 Request。
         // 如需更精细的控制，可以考虑扩展 Cashier 的控制器。
         return $cashierController->handleWebhook($request);
+    }
+
+    /**
+     * 根据上下文（域名、账户 ID 等）尝试解析环境。
+     */
+    protected function resolveEnvironment(string $accountId, Request $request): string
+    {
+        // 1. 尝试从域名解析 (RegionService)
+        try {
+            $regionService = app(\App\Services\RegionService::class);
+            if ($regionService && $regionService->getStripeAccount() === $accountId) {
+                return $regionService->getStripeEnvironment();
+            }
+        } catch (\Throwable $e) {
+            // RegionService 不可用或未注册
+        }
+
+        // 2. 尝试从 config/regions.php 静态匹配（如果域名不匹配也可以根据账户 ID 猜）
+        $regions = config('regions.regions', []);
+        foreach ($regions as $region) {
+            if (($region['stripe_account'] ?? null) === $accountId) {
+                return $region['stripe_environment'] ?? 'test';
+            }
+        }
+
+        // 3. 最后退回到全局默认值
+        return config('multi-stripe.default_environment', 'test');
     }
 }
 
