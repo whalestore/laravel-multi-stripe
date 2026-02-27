@@ -75,9 +75,11 @@ class ConfigStripeAccountResolver implements StripeAccountResolver
             if ($regionService) {
                 $account = $regionService->getStripeAccount();
                 if ($account) {
+                    // 使用区域级别的 stripe_environment，而非全局默认
+                    $environment = $regionService->getStripeEnvironment();
                     return [
                         'account' => $account,
-                        'environment' => $this->manager->defaultEnvironment(),
+                        'environment' => $environment,
                     ];
                 }
             }
